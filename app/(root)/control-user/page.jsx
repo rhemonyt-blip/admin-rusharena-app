@@ -10,16 +10,21 @@ export default function AdminUserControl() {
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [tokenFinding, setTokenFinding] = useState(null);
+
+  // Ban states
   const [banUserId, setBanUserId] = useState(null);
   const [banLoading, setBanLoading] = useState(false);
 
-  // Fetch users by search
+  // Unban states
+  const [unbanUserId, setUnbanUserId] = useState(null);
+  const [unbanLoading, setUnbanLoading] = useState(false);
+
+  // ================= FETCH USERS =================
   const fetchUsers = async () => {
     if (!searchTerm.trim()) {
       showToast("error", "Enter username");
       return;
     }
-
     try {
       setLoading(true);
       const res = await axios.get(`/api/users?search=${searchTerm}`);
@@ -29,13 +34,14 @@ export default function AdminUserControl() {
         setUsers([]);
         showToast("error", res.data.message);
       }
-    } catch (err) {
+    } catch {
       showToast("error", "Failed to fetch users");
     } finally {
       setLoading(false);
     }
   };
 
+  // ================= INPUT CHANGE =================
   const handleInputChange = (userId, field, value) => {
     setUsers((prev) =>
       prev.map((user) =>
@@ -49,6 +55,7 @@ export default function AdminUserControl() {
     showToast("info", "Copied to clipboard");
   };
 
+  // ================= UPDATE BALANCE =================
   const updateBalance = async (userId, winbalance, dipositbalance) => {
     try {
       setUpdatingId(userId);
@@ -70,6 +77,7 @@ export default function AdminUserControl() {
     }
   };
 
+  // ================= COPY TOKEN =================
   const handleTokenCopy = async (userId) => {
     try {
       setTokenFinding(userId);
@@ -85,16 +93,18 @@ export default function AdminUserControl() {
     }
   };
 
+  // ================= BAN =================
   const confirmBan = async (email) => {
     try {
       setBanLoading(true);
       const res = await axios.post("/api/ban-user", {
         userId: banUserId,
-        email, // send email from frontend
+        email,
       });
 
       if (res.data.success) {
         showToast("success", "User tokens banned successfully");
+        // Remove banned user from list
         setUsers((prev) => prev.filter((u) => u._id !== banUserId));
       } else {
         showToast("error", res.data.message);
@@ -104,6 +114,28 @@ export default function AdminUserControl() {
     } finally {
       setBanLoading(false);
       setBanUserId(null);
+    }
+  };
+
+  // ================= UNBAN =================
+  const confirmUnban = async (email) => {
+    try {
+      setUnbanLoading(true);
+      const res = await axios.post("/api/unban-user", {
+        userId: unbanUserId,
+        email,
+      });
+
+      if (res.data.success) {
+        showToast("success", "User tokens unbanned successfully");
+      } else {
+        showToast("error", res.data.message);
+      }
+    } catch {
+      showToast("error", "Failed to unban user");
+    } finally {
+      setUnbanLoading(false);
+      setUnbanUserId(null);
     }
   };
 
@@ -223,18 +255,26 @@ export default function AdminUserControl() {
             {/* Danger Zone */}
             <div className="mt-5 border-t border-red-800 pt-3">
               <p className="text-xs text-red-400 mb-2">Danger Zone</p>
-              <button
-                onClick={() => setBanUserId(user._id)}
-                className="w-full bg-red-600 hover:bg-red-700 py-2 rounded text-sm"
-              >
-                Ban User
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setUnbanUserId(user._id)}
+                  className="flex-1 bg-green-600 py-2 rounded text-sm"
+                >
+                  Unban User
+                </button>
+                <button
+                  onClick={() => setBanUserId(user._id)}
+                  className="flex-1 bg-red-600 py-2 rounded text-sm"
+                >
+                  Ban User
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Ban Confirmation Modal */}
+      {/* BAN MODAL */}
       {banUserId && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl p-6 w-[350px]">
@@ -259,6 +299,37 @@ export default function AdminUserControl() {
                 className="flex-1 py-2 bg-red-600 hover:bg-red-700 rounded"
               >
                 {banLoading ? "Banning..." : "Confirm Ban"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* UNBAN MODAL */}
+      {unbanUserId && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl p-6 w-[350px]">
+            <h2 className="text-lg font-semibold mb-3 text-white">
+              Confirm Unban
+            </h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Are you sure you want to unban this user?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setUnbanUserId(null)}
+                className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() =>
+                  confirmUnban(users.find((u) => u._id === unbanUserId)?.email)
+                }
+                disabled={unbanLoading}
+                className="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded"
+              >
+                {unbanLoading ? "Unbanning..." : "Confirm Unban"}
               </button>
             </div>
           </div>
