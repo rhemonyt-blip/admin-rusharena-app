@@ -43,3 +43,4 @@ service-account.json
 
 # Firebase service account
 firebase-service-account.json
+lib/serviceAccountKey.json
