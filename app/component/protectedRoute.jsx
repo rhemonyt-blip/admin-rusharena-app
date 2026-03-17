@@ -12,7 +12,7 @@ export default function ProtectedRoute({ children }) {
       try {
         const { value } = await Preferences.get({ key: "access_hc" });
         if (!value) {
-          // router.replace("/login"); // Redirect if not logged in
+          router.replace("/login"); // Redirect if not logged in
         }
       } catch (error) {
         console.error("Error checking auth:", error);
