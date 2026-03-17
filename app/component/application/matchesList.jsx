@@ -83,9 +83,7 @@ const PlayMatch = ({ type }) => {
       setError(null);
       try {
         const res = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_WEB_URL
-          }/api/matches?type=${encodeURIComponent(matchType)}`,
+          `/api/matches?type=${encodeURIComponent(matchType)}`,
         );
         if (!res.ok) throw new Error("No matches found!");
 
@@ -209,11 +207,7 @@ const PlayMatch = ({ type }) => {
           <Card
             key={match._id}
             className="bg-gray-800 text-white border border-gray-700 sm:w-full hover:bg-gray-700 transition cursor-pointer"
-            onClick={() =>
-              router.push(
-                `${process.env.NEXT_PUBLIC_WEB_URL}/matches/details?matchId=${match._id}`,
-              )
-            }
+            onClick={() => router.push(`/matches/details?matchId=${match._id}`)}
           >
             <CardHeader>
               <div className="flex gap-4 justify-start">

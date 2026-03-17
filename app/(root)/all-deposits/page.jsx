@@ -20,9 +20,7 @@ export default function DepositListPage() {
   // Fetch all deposit requests
   const fetchDeposits = async () => {
     try {
-      const { data } = await axios.get(
-        `${process.env.NEXT_PUBLIC_WEB_URL}/api/diposit`,
-      );
+      const { data } = await axios.get(`/api/diposit`);
       if (data.success) {
         setDeposits(data.data);
       } else {
@@ -65,15 +63,12 @@ export default function DepositListPage() {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_WEB_URL}/api/diposit/receive`,
-        {
-          transactionId: formData.trxId,
-          amount: Number(formData.amount),
-          senderNumber: formData.phone,
-          service: selectedDeposit?.method, // send payment method
-        },
-      );
+      const res = await axios.post(`/api/diposit/receive`, {
+        transactionId: formData.trxId,
+        amount: Number(formData.amount),
+        senderNumber: formData.phone,
+        service: selectedDeposit?.method, // send payment method
+      });
 
       if (res.data.success) {
         showToast(

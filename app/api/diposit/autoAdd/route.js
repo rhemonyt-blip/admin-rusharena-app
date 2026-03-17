@@ -37,7 +37,7 @@ export async function POST(req) {
       return response(
         false,
         400,
-        "Failed to extract required transaction details"
+        "Failed to extract required transaction details",
       );
     }
     const existingTx = await smsLog.findOne({ transactionId: trxId });
@@ -60,7 +60,7 @@ export async function POST(req) {
       return response(
         true,
         200,
-        "No deposit found. Logged SMS for later matching."
+        "No deposit found. Logged SMS for later matching.",
       );
     }
 
@@ -82,7 +82,7 @@ export async function POST(req) {
     const updatedUser = await User.findByIdAndUpdate(
       deposit.userId,
       { $inc: { dipositbalance: amount } },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedUser)

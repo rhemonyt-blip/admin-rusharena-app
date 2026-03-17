@@ -15,14 +15,11 @@ export async function GET(req) {
     if (!search) {
       return response(false, 400, "Search query is required");
     }
-
-    // Search by name, phone, or email
     const users = await User.find({
-      $or: [{ name: { $regex: search, $options: "i" } }],
+      name: search,
     })
-      .limit(20) // prevent large responses
+      .limit(20)
       .lean();
-
     if (!users.length) {
       return response(false, 404, "No users found");
     }

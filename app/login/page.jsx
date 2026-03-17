@@ -60,12 +60,14 @@ export default function LoginPage() {
       showToast("success", loginResponse.message || "Login successful");
 
       // Redirect user
-      window.location.href = process.env.NEXT_PUBLIC_WEB_URL; // or use router.push(process.env.NEXT_PUBLIC_WEB_URL)
+      window.location.href = "/"; // or use router.push(link here)
     } catch (error) {
       console.error("Login error:", error);
       showToast(
         "error",
-        error.response?.data?.message || error.message || "Something went wrong"
+        error.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
       );
     } finally {
       setLoading(false);

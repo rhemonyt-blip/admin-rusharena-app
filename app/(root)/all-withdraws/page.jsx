@@ -13,9 +13,7 @@ export default function WithdrawListPage() {
   // Fetch all withdraw requests
   const fetchWithdraws = async () => {
     try {
-      const { data } = await axios.get(
-        `${process.env.NEXT_PUBLIC_WEB_URL}api/withdraw`
-      );
+      const { data } = await axios.get(`/api/withdraw`);
       if (data.success) {
         setWithdraws(data.data);
       } else {
@@ -34,10 +32,13 @@ export default function WithdrawListPage() {
   const handleApprove = async (userId, amount, method, phone, id) => {
     try {
       setLoadingIds((prev) => [...prev, id]); // mark this withdraw as loading
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_WEB_URL}api/withdraw`,
-        { userId, amount, method, phone, id }
-      );
+      const res = await axios.post(`/api/withdraw`, {
+        userId,
+        amount,
+        method,
+        phone,
+        id,
+      });
 
       if (res.data.success) {
         showToast("success", "Withdraw approved successfully");
@@ -124,7 +125,7 @@ export default function WithdrawListPage() {
                       withdraw.amount,
                       withdraw.method,
                       withdraw.phone,
-                      withdraw._id
+                      withdraw._id,
                     )
                   }
                   className="bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium"

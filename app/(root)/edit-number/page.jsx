@@ -32,9 +32,7 @@ export default function UpdateNumberPage() {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get(
-          `${process.env.NEXT_PUBLIC_WEB_URL}api/updateNumber`
-        );
+        const { data } = await axios.get(`/api/updateNumber`);
         if (data.success) {
           setNumbers({
             Bkash: data.data.Bkash,
@@ -58,10 +56,10 @@ export default function UpdateNumberPage() {
     try {
       setLoading(true);
       const { number } = data;
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_WEB_URL}api/updateNumber`,
-        { type: method, number }
-      );
+      const res = await axios.post(`/api/updateNumber`, {
+        type: method,
+        number,
+      });
 
       if (res.data.success) {
         showToast("success", res.data.message);

@@ -14,6 +14,7 @@ export default function MatchDetails() {
   const [match, setMatch] = useState(null);
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false); // ✅ modal state
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,13 +82,14 @@ export default function MatchDetails() {
       {/* Players List */}
       <div className="mt-8 border-t border-gray-700 pt-4">
         <h3 className="font-bold text-lg mb-3 text-center">Joined Players</h3>
+
         {players.length > 0 ? (
           <div className="max-h-64 overflow-y-auto bg-gray-900 rounded-lg border border-gray-700">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-800 text-gray-300">
                   <th className="py-2 px-4 text-left">#</th>
-                  <th className="py-2 px-4 text-left w-1/3 ">Player Name</th>
+                  <th className="py-2 px-4 text-left w-1/3">Player Name</th>
                   <th className="py-2 px-4 text-left">User Name</th>
                   <th className="py-2 px-4 text-left">Result</th>
                 </tr>
@@ -96,8 +98,8 @@ export default function MatchDetails() {
                 {players.map((player, index) => (
                   <tr key={player._id} className="border-b border-gray-800">
                     <td className="py-2 px-4 w-1/12">{index + 1}</td>
-                    <td className="py-2 px-4 w-1/4 ">{player.name}</td>
-                    <td className="py-2 px-4 w-1/5 ">{player.userName}</td>
+                    <td className="py-2 px-4 w-1/4">{player.name}</td>
+                    <td className="py-2 px-4 w-1/5">{player.userName}</td>
                     <td className="py-2 px-4 w-1/3 flex gap-3">
                       <input
                         type="number"
@@ -127,17 +129,53 @@ export default function MatchDetails() {
         ) : (
           <p className="text-center text-gray-400">No players joined yet.</p>
         )}
+
         {players.length > 0 && (
           <div className="mt-4">
             <ButtonLoading
               className="w-full bg-blue-600 hover:bg-blue-700"
               text="Save Results"
-              onclick={handleSave}
+              onclick={() => setShowModal(true)} // ✅ open modal
               loading={loading}
             />
           </div>
         )}
       </div>
+
+      {/* ✅ Confirmation Modal */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+          <div className="bg-gray-900 rounded-2xl p-6 w-[90%] max-w-md shadow-xl border border-gray-700">
+            <h2 className="text-xl font-bold text-white mb-3">
+              Confirm Submission
+            </h2>
+
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to save the match results? This action
+              cannot be undone.
+            </p>
+
+            <div className="flex justify-between gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-full px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  setShowModal(false);
+                  await handleSave();
+                }}
+                className="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
