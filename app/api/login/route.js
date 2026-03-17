@@ -19,7 +19,7 @@ export async function POST(request) {
           message: "Invalid or missing input field!",
           error: validatedData.error,
         }),
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(request) {
           statusCode: 401,
           message: "Invalid email or password!",
         }),
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -46,7 +46,7 @@ export async function POST(request) {
           statusCode: 401,
           message: "Invalid email or password!",
         }),
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -55,7 +55,7 @@ export async function POST(request) {
 
     // Set cookie
     const headers = {
-      "Set-Cookie": cookie.serialize("access_hc", token, {
+      "Set-Cookie": cookie.serialize("access_token", token, {
         httpOnly: false, // frontend/Capacitor can read it
         path: "/",
         sameSite: "lax",
@@ -73,7 +73,7 @@ export async function POST(request) {
         },
         token, // also send token for Capacitor storage
       }),
-      { headers }
+      { headers },
     );
   } catch (error) {
     return catchError(error);

@@ -27,6 +27,53 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // const {
+  //   register,
+  //   handleSubmit,
+  //   formState: { errors },
+  //   reset,
+  // } = useForm({
+  //   resolver: zodResolver(loginSchema),
+  // });
+
+  // const onSubmit = async (formData) => {
+  //   try {
+  //     setLoading(true);
+
+  //     // Send login request
+  //     const res = await axios.post("/api/login", formData);
+  //     const loginResponse = res.data;
+
+  //     if (!loginResponse.success) {
+  //       showToast("error", loginResponse.message || "Login failed");
+  //       return;
+  //     }
+
+  //     const token = loginResponse.token;
+
+  //     // Save token in Capacitor Preferences (works in APK + web)
+  //     if (token) {
+  //       await Preferences.set({ key: "access_token", value: token });
+  //     }
+
+  //     reset();
+  //     showToast("success", loginResponse.message || "Login successful");
+
+  //     // Redirect user
+  //     window.location.href = "/"; // or use router.push(link here)
+  //   } catch (error) {
+  //     console.error("Login error:", error);
+  //     showToast(
+  //       "error",
+  //       error.response?.data?.message ||
+  //         error.message ||
+  //         "Something went wrong",
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const {
     register,
     handleSubmit,
@@ -41,7 +88,7 @@ export default function LoginPage() {
       setLoading(true);
 
       // Send login request
-      const res = await axios.post("/api/login", formData);
+      const res = await axios.post(`/api/login`, formData);
       const loginResponse = res.data;
 
       if (!loginResponse.success) {
@@ -60,7 +107,7 @@ export default function LoginPage() {
       showToast("success", loginResponse.message || "Login successful");
 
       // Redirect user
-      window.location.href = "/"; // or use router.push(link here)
+      return router.push(process.env.NEXT_PUBLIC_APP_URL || "/"); // or use router.push(link here)
     } catch (error) {
       console.error("Login error:", error);
       showToast(

@@ -1,18 +1,28 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Preferences } from "@capacitor/preferences";
 
 export default function ProtectedRoute({ children }) {
   const [checking, setChecking] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     async function checkAuth() {
       try {
-        const { value } = await Preferences.get({ key: "access_hc" });
+        const { value } = await Preferences.get({ key: "access_token" });
+
         if (!value) {
-          router.replace("/login"); // Redirect if not logged in
+          // User not logged in → redirect away from protected routes
+          if (!pathname.startsWith("/login")) {
+            router.replace("/login");
+          }
+        } else {
+          // User logged in → prevent visiting login/signup
+          if (pathname.startsWith("/login")) {
+            router.replace("/");
+          }
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -21,8 +31,9 @@ export default function ProtectedRoute({ children }) {
         setChecking(false);
       }
     }
+
     checkAuth();
-  }, [router]);
+  }, [router, pathname]);
 
   if (checking) {
     return (
