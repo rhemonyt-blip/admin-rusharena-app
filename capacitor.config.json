@@ -4,7 +4,7 @@
   "webDir": "public",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://rusharena-admin.vercel.app/",
+    "url": "https://www.rusharena-admin.site/",
     "cleartext": false
   }
 }

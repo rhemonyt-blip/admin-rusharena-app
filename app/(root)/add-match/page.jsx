@@ -25,7 +25,7 @@ import { useSearchParams } from "next/navigation";
 import ButtonLoading from "@/app/component/buttonLoading";
 
 export default function TournamentForm() {
-  const [prizeDetails, setPrizeDetails] = useState(false);
+  const [prizeInputsCount, setPrizeInputsCount] = useState(1); // dynamic inputs count
   const [loading, setLoading] = useState(false);
 
   const searchParams = useSearchParams();
@@ -38,35 +38,14 @@ export default function TournamentForm() {
       entryFee: 10,
       entryType: "Solo",
       map: "Bermuda",
-      prizeDetails: false,
-      joined: 0,
       totalSpots: 48,
-      firstPrize: 70,
-      secondPrize: 50,
-      thirdPrize: 40,
-      fourthPrize: 20,
-      fifthPrize: 10,
+      prizes: [70], // initialize with 1 input
     },
   });
+
   const onSubmit = async (data) => {
     setLoading(true);
     const matchType = searchParams.get("type");
-
-    // Only include prize details if prizeDetails toggle is true
-    if (data.prizeDetails === true) {
-      const { firstPrize, secondPrize, thirdPrize, fourthPrize, fifthPrize } =
-        form.getValues(); // get current values of these fields
-
-      data.prizeDetails = [
-        firstPrize,
-        secondPrize,
-        thirdPrize,
-        fourthPrize,
-        fifthPrize,
-      ];
-    } else {
-      data.prizeDetails = [];
-    }
 
     // Include matchType
     data.matchType = matchType;
@@ -75,7 +54,7 @@ export default function TournamentForm() {
     data.startTime = new Date(data.startTime);
 
     try {
-      const res = await axios.post("/api/addMatch", { data }); // match API structure
+      const res = await axios.post("/api/addMatch", { data });
       if (res?.data?.success) {
         showToast("success", "Added successfully");
       } else {
@@ -85,6 +64,22 @@ export default function TournamentForm() {
       showToast("error", err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const addPrizeInput = () => {
+    if (prizeInputsCount < 5) {
+      setPrizeInputsCount(prizeInputsCount + 1);
+      form.setValue("prizes", [...form.getValues("prizes"), 0]);
+    }
+  };
+
+  const removePrizeInput = (index) => {
+    if (prizeInputsCount > 1) {
+      setPrizeInputsCount(prizeInputsCount - 1);
+      const prizes = form.getValues("prizes");
+      prizes.splice(index, 1);
+      form.setValue("prizes", prizes);
     }
   };
 
@@ -130,94 +125,74 @@ export default function TournamentForm() {
           )}
         />
 
-        {/* Win Prize & Prize Details */}
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <FormField
-              control={form.control}
-              name="winPrize"
-              rules={{ required: "Win Prize is required" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Win Prize</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="number" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+        {/* Win Prize */}
+        <FormField
+          control={form.control}
+          name="winPrize"
+          rules={{ required: "Win Prize is required" }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Win Prize</FormLabel>
+              <FormControl>
+                <Input {...field} type="number" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div className="flex-1">
+        {/* Dynamic Prize Inputs */}
+        <div className="flex flex-col md:grid-cols-3 gap-3 border bg-black/5 p-3 rounded">
+          {Array.from({ length: prizeInputsCount }).map((_, index) => (
             <FormField
+              key={index}
               control={form.control}
-              name="prizeDetails"
+              name={`prizes.${index}`}
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prize Details</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={(value) => {
-                        const boolValue = value === "true";
-                        field.onChange(boolValue);
-                        setPrizeDetails(boolValue);
-                      }}
-                      value={field.value ? "true" : "false"}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">Yes</SelectItem>
-                        <SelectItem value="false">No</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Conditional Prize Inputs */}
-        {prizeDetails !== false && (
-          <div
-            className={`${
-              prizeDetails == false && "hidden"
-            } grid grid-cols-2 md:grid-cols-3 gap-3 border bg-black/5 p-3 rounded`}
-          >
-            {[
-              "firstPrize",
-              "secondPrize",
-              "thirdPrize",
-              "fourthPrize",
-              "fifthPrize",
-            ].map((name, index) => (
-              <FormField
-                key={name}
-                control={form.control}
-                name={name}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{`${index + 1}${
-                      index === 0
-                        ? "st"
-                        : index === 1
+                <FormItem className="flex flex-col">
+                  <FormLabel>
+                    {index + 1}
+                    {index === 0
+                      ? "st"
+                      : index === 1
                         ? "nd"
                         : index === 2
-                        ? "rd"
-                        : "th"
-                    } Prize`}</FormLabel>
+                          ? "rd"
+                          : "th"}{" "}
+                    Prize
+                  </FormLabel>
+                  <div className="flex gap-2 items-center">
                     <FormControl>
                       <Input {...field} type="number" />
                     </FormControl>
-                  </FormItem>
-                )}
-              />
-            ))}
-          </div>
-        )}
+
+                    {prizeInputsCount > 1 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => removePrizeInput(index)}
+                      >
+                        -
+                      </Button>
+                    )}
+                  </div>
+                  {prizeInputsCount < 5 && index === prizeInputsCount - 1 && (
+                    <div className="flex items-center w-full">
+                      {" "}
+                      <Button
+                        className="w-full mt-2"
+                        type="button"
+                        onClick={addPrizeInput}
+                      >
+                        +add
+                      </Button>
+                    </div>
+                  )}
+                </FormItem>
+              )}
+            />
+          ))}
+        </div>
 
         {/* Per Kill */}
         <FormField
