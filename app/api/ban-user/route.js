@@ -53,7 +53,7 @@ export async function POST(req) {
   } catch (err) {
     console.error(err);
     if (err.code === 11000) {
-      return response(false, 400, "User already banned", err.message);
+      return response(false, 400, "User banned !!", err.message);
     }
     return response(false, 500, "Server error", err.message);
   }
