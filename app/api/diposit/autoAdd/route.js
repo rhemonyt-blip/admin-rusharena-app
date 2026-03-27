@@ -27,6 +27,7 @@ export async function POST(req) {
     const fromMatch = key.match(/from\s*(01[3-9]\d{8})/i);
     const senderMatch = key.match(/Sender\s*(01[3-9]\d{8})/i);
     const trxIdMatch = key.match(/TrxID\s*([A-Z0-9]+)/i);
+    const txnIdMatch = key.match(/TxnID\s*([A-Z0-9]+)/i);
 
     const amount = amountMatch ? parseFloat(amountMatch[1]) : null;
     const senderNumber = senderMatch
@@ -34,7 +35,12 @@ export async function POST(req) {
       : null || fromMatch
         ? fromMatch[1]
         : null;
-    const trxId = trxIdMatch ? trxIdMatch[1] : null;
+
+    const trxId = trxIdMatch
+      ? trxIdMatch[1]
+      : null || txnIdMatch
+        ? txnIdMatch[1]
+        : null;
     const service = senderMatch ? "Nagad" : fromMatch ? "Bkash" : "Unknown";
 
     if (!amount || !trxId) {
