@@ -53,7 +53,7 @@ export async function POST(req) {
         senderNumber,
         amount,
         transactionId: trxId,
-        receivedAt: time ? new Date(time) : new Date(),
+        receivedAt: new Date(),
       });
 
       return response(
