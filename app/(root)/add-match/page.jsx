@@ -68,7 +68,7 @@ export default function TournamentForm() {
   };
 
   const addPrizeInput = () => {
-    if (prizeInputsCount < 5) {
+    if (prizeInputsCount < 20) {
       setPrizeInputsCount(prizeInputsCount + 1);
       form.setValue("prizes", [...form.getValues("prizes"), 0]);
     }
@@ -161,6 +161,7 @@ export default function TournamentForm() {
                           : "th"}{" "}
                     Prize
                   </FormLabel>
+
                   <div className="flex gap-2 items-center">
                     <FormControl>
                       <Input {...field} type="number" />
@@ -176,9 +177,10 @@ export default function TournamentForm() {
                       </Button>
                     )}
                   </div>
-                  {prizeInputsCount < 5 && index === prizeInputsCount - 1 && (
+
+                  {/* 🔥 Updated limit to 20 */}
+                  {prizeInputsCount < 20 && index === prizeInputsCount - 1 && (
                     <div className="flex items-center w-full">
-                      {" "}
                       <Button
                         className="w-full mt-2"
                         type="button"
