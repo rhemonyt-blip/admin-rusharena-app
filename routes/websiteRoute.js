@@ -6,6 +6,7 @@ export const all_deposit = "/all-deposits";
 export const all_withdraws = "/all-withdraws";
 export const analytic = "/analytic";
 export const edit_number = "/edit-number";
+export const admin_password = "/admin-password";
 
 // admin routes -------------
 

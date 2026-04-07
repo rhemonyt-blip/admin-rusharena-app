@@ -15,6 +15,7 @@ import {
   analytic,
   control_user,
   edit_number,
+  admin_password,
 } from "@/routes/websiteRoute";
 import ButtonLoading from "./buttonLoading";
 import { Preferences } from "@capacitor/preferences";
@@ -26,6 +27,7 @@ import {
   ArrowDownCircle,
   Settings,
   Edit,
+  UserPen,
   Image as ImageIcon,
 } from "lucide-react";
 
@@ -39,12 +41,9 @@ const menuData = [
   { label: "Pending withdraws", link: all_withdraws, icon: ArrowDownCircle },
   { label: "Others", link: analytic, icon: Settings },
   { label: "Edit Numbers", link: edit_number, icon: Edit },
-  {
-    label: "Edit Photos",
-    link: clowdinaryLink,
-    icon: ImageIcon,
-    confirm: true,
-  },
+  { label: "Admin Passwords", link: admin_password, icon: UserPen },
+
+  // {    label: "Edit Photos", link: clowdinaryLink, icon: ImageIcon, confirm: true,  },
 ];
 
 // ✅ Reusable Modal Component
