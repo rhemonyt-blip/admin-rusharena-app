@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import axios from "axios";
+
 import {
   MatchType1,
   MatchType2,
@@ -29,7 +31,8 @@ import {
 } from "@/config";
 import PrizePopup from "@/app/component/application/prizePopup";
 import { showToast } from "@/app/component/application/tostify";
-import { set } from "mongoose";
+import ButtonLoading from "@/app/component/buttonLoading";
+
 
 // ✅ helper to get image based on type
 const getMatchImage = (matchType) => {
@@ -70,6 +73,9 @@ export default function ResultPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  
+  const [dltLoading, setDltLoading] = useState(false);
   const [totalPrize, setTotalPrize] = useState(0);
   const [perKill, setPerKill] = useState(0);
   const [allPrize, setAllPrize] = useState([]);
@@ -117,6 +123,28 @@ export default function ResultPage() {
     fetchMatches();
   }, []);
 
+  const deleteAllMatch = async()=>{
+    
+    try {
+         setDltLoading(true)
+      const res = await axios.delete(
+        `/api/matchResults/deleteMatch/?matchType=${matchType || ""}`,
+      );
+      if (res.data.success) {
+        showToast("success", res.data.message ||  "All Matches deleted ");
+      window.location.reload()
+      } else {
+        showToast("error", res.data.message || "Failed to delete match");
+      }
+    } catch (err) {
+      showToast("error", err.message);
+    } finally {
+      setDltLoading(false);
+     
+    }
+
+  }
+
   // ✅ Handle navigation
   const handleCardClick = (id) => {
     router.push(`/match-results/details?matchId=${id}`);
@@ -158,8 +186,15 @@ export default function ResultPage() {
       <div className="flex items-center justify-around">
         <h1 className="text-center text-2xl text-fuchsia-50 font-bold mb-6">
           Today Matches
-        </h1>
-      </div>
+        </h1>      </div>
+                <ButtonLoading
+              className="w-full bg-red-400 mb-8"
+              
+              text="Delete All Match"
+              onclick={() => { setShowModal(true); }}
+              loading={dltLoading}
+            />
+
       <div className="grid md:grid-cols-2 gap-3  ">
         {/* ✅ Available Matches */}
         {matches.map((match) => {
@@ -256,6 +291,39 @@ export default function ResultPage() {
             onClose={() => setShowPopup(false)}
           />
         )}
+
+           {/* Modal  Delete confirmation*/}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+          <div className="bg-gray-900 rounded-2xl p-6 w-[90%] max-w-md">
+            <h2 className="text-xl font-bold text-white text-center mb-3">Confirm To Delete</h2>
+
+            <p className="text-gray-300 mb-6">This action cannot be undone.</p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-full bg-gray-600 py-2 rounded"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+
+                  setShowModal(false);
+                  await  deleteAllMatch();
+                }}
+              
+                className="w-full py-2 rounded bg-red-600 "
+                
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
