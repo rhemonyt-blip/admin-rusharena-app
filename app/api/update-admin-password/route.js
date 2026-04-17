@@ -23,8 +23,10 @@ export async function POST(req) {
     if (password.length < 4) {
       return response(400, "Password must be at least 4 characters");
     }
-
+    const adminEmail = process.env.ADMIN_EMAIL || "";
+    id = id === "admin" ? adminEmail : id;
     // 🗑️ Delete existing record (if any)
+
     await Admin.deleteOne({ email: id });
 
     // 🆕 Create new record (always new _id)

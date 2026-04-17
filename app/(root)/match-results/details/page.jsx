@@ -20,7 +20,7 @@ export default function MatchDetails() {
 
   // ✅ total winning calculation
   const totalWinning = useMemo(() => {
-    return players.reduce((sum, p) => sum + (Number(p.wining) || 0), 0);
+    return players.reduce((sum, p) => sum + (Number(p.winning) || 0), 0);
   }, [players]);
 
   useEffect(() => {
@@ -30,7 +30,9 @@ export default function MatchDetails() {
       try {
         setFetching(true);
 
-        const res = await axios.get(`/api/matches/details/?matchId=${matchId}`);
+        const res = await axios.get(
+          `/api/matchResults/details/?matchId=${matchId}`,
+        );
 
         setMatch(res.data.match);
         setPlayers(res.data.match.joinedPlayers || []);
@@ -55,7 +57,7 @@ export default function MatchDetails() {
     updated[index][field] = val;
 
     const newTotal = updated.reduce(
-      (sum, p) => sum + (Number(p.wining) || 0),
+      (sum, p) => sum + (Number(p.winning) || 0),
       0,
     );
 
@@ -85,10 +87,10 @@ export default function MatchDetails() {
       const results = players.map((player) => ({
         playerId: player.authId,
         kills: Number(player.kills) || 0,
-        winning: Number(player.wining) || 0,
+        winning: Number(player.winning) || 0,
       }));
 
-      const res = await axios.post(`/api/matches/updateResults`, {
+      const res = await axios.post(`/api/matchResults/updateResults`, {
         matchId,
         results,
       });
@@ -153,7 +155,8 @@ export default function MatchDetails() {
                   <th className="py-2 px-4">#</th>
                   <th className="py-2 px-4">Player</th>
                   <th className="py-2 px-4">Username</th>
-                  <th className="py-2 px-4">Result</th>
+                  <th className="py-2 px-4">Kills</th>
+                  <th className="py-2 px-4">Wins</th>
                 </tr>
               </thead>
               <tbody>
@@ -162,7 +165,7 @@ export default function MatchDetails() {
                     <td className="py-2 px-4">{index + 1}</td>
                     <td className="py-2 px-4">{player.name}</td>
                     <td className="py-2 px-4">{player.userName}</td>
-                    <td className="py-2 px-4 flex gap-3">
+                    <td className="py-2 px-4">
                       <input
                         type="number"
                         min="0"
@@ -171,18 +174,19 @@ export default function MatchDetails() {
                         onChange={(e) =>
                           handleInputChange(index, "kills", e.target.value)
                         }
-                        className="border border-blue-600 bg-transparent px-2 w-24 rounded"
+                        className="border border-blue-600 bg-transparent px-2 w-14 rounded"
                       />
-
+                    </td>
+                    <td className="py-2 px-4">
                       <input
                         type="number"
                         min="0"
                         placeholder="Win"
-                        value={player.wining || ""}
+                        value={player.winning || ""}
                         onChange={(e) =>
-                          handleInputChange(index, "wining", e.target.value)
+                          handleInputChange(index, "winning", e.target.value)
                         }
-                        className="border border-blue-600 bg-transparent px-2 w-24 rounded"
+                        className="border border-blue-600 bg-transparent px-2 w-14 rounded"
                       />
                     </td>
                   </tr>

@@ -1,7 +1,6 @@
 import { connectDB } from "@/lib/connectDB";
 import { response } from "@/lib/healperFunc";
 import Admin from "@/models/admins";
-import User from "@/models/admins";
 
 export async function GET(request) {
   try {
@@ -26,7 +25,11 @@ export async function GET(request) {
     if (!matches) {
       return response(false, 404, " No Matches Password found!");
     }
-
+    matches.map((match) => {
+      match.email =
+        match.email === process.env.ADMIN_EMAIL ? "Admin" : match.email;
+      return match;
+    });
     return new Response(JSON.stringify({ message: "Success", data: matches }), {
       status: 200,
       headers: { "Content-Type": "application/json" },

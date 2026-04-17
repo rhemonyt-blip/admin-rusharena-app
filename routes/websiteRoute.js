@@ -7,6 +7,7 @@ export const all_withdraws = "/all-withdraws";
 export const analytic = "/analytic";
 export const edit_number = "/edit-number";
 export const admin_password = "/admin-password";
+export const match_results = "/match-results";
 
 // admin routes -------------
 

@@ -3,10 +3,10 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/connectDB";
 import { response } from "@/lib/healperFunc";
-import Matches from "@/models/matches";
 import User from "@/models/user";
 import MyMathes from "@/models/myMatch";
 import ResultMatches from "@/models/resultMatch";
+import myMatch from "@/models/myMatch";
 
 export async function POST(req) {
   const session = await mongoose.startSession();
@@ -25,22 +25,11 @@ export async function POST(req) {
     session.startTransaction();
 
     // ✅ Find match
-    const match = await Matches.findById(matchId).session(session);
+    const match = await ResultMatches.findById(matchId).session(session);
     if (!match) {
       await session.abortTransaction();
       session.endSession();
       return response(false, 404, "Match not found");
-    }
-
-    // ✅ Prevent duplicate results
-    const existingResult = await ResultMatches.findOne({
-      serialNumber: match.serialNumber,
-    }).session(session);
-
-    if (existingResult) {
-      await session.abortTransaction();
-      session.endSession();
-      return response(false, 400, "Results already declared");
     }
 
     // ✅ Validate prize pool
@@ -75,32 +64,32 @@ export async function POST(req) {
         notFoundPlayers.push(playerId);
         continue;
       }
+      const newWinBalance = winning - joinedPlayer.winning || 0;
 
       // ✅ Update balance
-      user.winbalance = (user.winbalance || 0) + winning;
+      user.winbalance = (user.winbalance || 0) + newWinBalance;
       await user.save({ session });
 
       updatedPlayers.push(user._id);
 
-      // ✅ MyMatches entry
-      await MyMathes.create(
-        [
-          {
+      await MyMathes.findByIdAndUpdate(
+        match._myMatchId,
+        {
+          $set: {
             userId: user._id,
             title: match.title,
             time: match.startTime,
             myKills: kills.toString(),
             myWin: winning.toString(),
           },
-        ],
-        { session },
+        },
+        { session, new: true },
       );
 
       // ✅ Collect results
       finalResults.push({
         name: joinedPlayer.name,
         authId: joinedPlayer.authId,
-        userName: joinedPlayer.userName,
         kills,
         winning,
       });
@@ -125,8 +114,6 @@ export async function POST(req) {
       ],
       { session },
     );
-    //delete match from Matches collection
-    await Matches.findByIdAndDelete(matchId);
 
     // ✅ Mark match completed
     match.status = "completed";

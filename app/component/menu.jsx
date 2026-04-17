@@ -16,6 +16,7 @@ import {
   control_user,
   edit_number,
   admin_password,
+  match_results,
 } from "@/routes/websiteRoute";
 import ButtonLoading from "./buttonLoading";
 import { Preferences } from "@capacitor/preferences";
@@ -28,6 +29,7 @@ import {
   Settings,
   Edit,
   UserPen,
+  BarChart3,
   Image as ImageIcon,
 } from "lucide-react";
 
@@ -42,6 +44,7 @@ const menuData = [
   { label: "Others", link: analytic, icon: Settings },
   { label: "Edit Numbers", link: edit_number, icon: Edit },
   { label: "Admin Passwords", link: admin_password, icon: UserPen },
+  { label: "Match Results", link: match_results, icon: BarChart3 },
 
   // {    label: "Edit Photos", link: clowdinaryLink, icon: ImageIcon, confirm: true,  },
 ];
