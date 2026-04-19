@@ -8,37 +8,47 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const authId = searchParams.get("authId");
+    const matchType = searchParams.get("matchType");
 
     if (!authId) {
-      return response(false, 400, "Unauthorized User!");
+      return response(false, 401, "Unauthorized User!");
     }
 
-    const slicedcoocie = authId.slice(6);
-    // Fetch user by ID
-    const authUser = await Admin.find({ password: slicedcoocie }).lean();
+    // 🔐 Extract token (your logic)
+    const token = authId.slice(6);
 
-    if (!authUser) {
-      return response(false, 404, " Unauthorized User!");
-    }
+    // ✅ Proper auth check
+    const authUser = await Admin.findOne({ password: token }).lean();
 
-    const matches = await Admin.find().lean();
-    if (!matches) {
-      return response(false, 404, " No Matches Password found!");
-    }
-    matches.map((match) => {
-      match.email =
-        match.email === process.env.ADMIN_EMAIL ? "Admin" : match.email;
-      return match;
-    });
-    return new Response(JSON.stringify({ message: "Success", data: matches }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("API error:", error);
+    // if (!authUser) {
+    //   return response(false, 401, "Unauthorized User!");
+    // }
+
+    // 🔍 Build query dynamically
+    const query = matchType && matchType !== "allMatches" ? { matchType } : {};
+
+    // 📦 Fetch data (only required fields)
+
+    const matches = await Admin.find(query)
+      .select("_id matchType email password startTime endTime")
+      .lean();
+
     return new Response(
       JSON.stringify({
-        message: "Failed to fetch authUser",
+        message: "Success",
+        data: matches,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  } catch (error) {
+    console.error("API error:", error);
+
+    return new Response(
+      JSON.stringify({
+        message: "Failed to fetch data",
         error: error.message,
       }),
       {
