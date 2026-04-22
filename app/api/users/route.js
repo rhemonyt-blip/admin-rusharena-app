@@ -15,11 +15,9 @@ export async function GET(req) {
     if (!search) {
       return response(false, 400, "Search query is required");
     }
-    const users = await User.find({
-      name: search,
-    })
-      .limit(20)
-      .lean();
+    const query = search !== "allUser" ? { name: search } : {};
+
+    const users = await User.find(query).lean();
     if (!users.length) {
       return response(false, 404, "No users found");
     }

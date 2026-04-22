@@ -142,6 +142,23 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {/* matchType */}
+              <div className="space-y-1">
+                <Label htmlFor="matchType">Access Type</Label>
+                <Input
+                  id="matchType"
+                  type="text"
+                  value="admin"
+                  {...register("matchType")}
+                  disabled
+                />
+                {errors.matchType && (
+                  <p className="text-red-500 dark:text-red-400 text-sm">
+                    {errors.matchType.message}
+                  </p>
+                )}
+              </div>
+
               {/* Email */}
               <div className="space-y-1">
                 <Label htmlFor="email">Email</Label>

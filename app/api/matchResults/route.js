@@ -5,26 +5,29 @@ export async function GET(request) {
   try {
     await connectDB();
 
+    // 👇 userId from headers
     const { searchParams } = new URL(request.url);
-    const matchType = searchParams.get("type");
+    const userId = request.headers.get("x-user-id");
+    const matchType = searchParams.get("matchType");
 
-    if (!matchType) {
-      return new Response(
-        JSON.stringify({ message: "Match type is required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
+    if (!userId) {
+      return new Response(JSON.stringify({ message: "Unauthorized Access!" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // Fetch matches that match matchType AND have startTime within today
-    const matches = await ResultMatches.find({
-      matchType,
-      // startTime: { $gte: startOfDay, $lte: endOfDay },
-    }).lean();
-
-    if (!matches || matches.length === 0) {
+    const matches = await ResultMatches.find({ matchType }).lean();
+    if (!matches) {
       return new Response(
-        JSON.stringify({ message: "No matches found", data: [] }),
+        JSON.stringify({ message: "No  matches found", data: [] }),
         { status: 404, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    if (!matches.length) {
+      return new Response(
+        JSON.stringify({ message: "No  matches found", data: [] }),
+        { status: 201, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -34,6 +37,7 @@ export async function GET(request) {
     });
   } catch (error) {
     console.error("API error:", error);
+
     return new Response(
       JSON.stringify({
         message: "Failed to fetch matches",

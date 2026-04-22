@@ -1,7 +1,9 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Preferences } from "@capacitor/preferences";
+import axios from "axios";
 
 export default function ProtectedRoute({ children }) {
   const [checking, setChecking] = useState(true);
@@ -9,35 +11,62 @@ export default function ProtectedRoute({ children }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    let isMounted = true;
+
     async function checkAuth() {
       try {
-        const { value } = await Preferences.get({ key: "access_token" });
+        const { value: token } = await Preferences.get({
+          key: "access_token",
+        });
 
-        if (!value) {
-          // User not logged in → redirect away from protected routes
+        // ❌ No token
+        if (!token) {
           if (!pathname.startsWith("/login")) {
             router.replace("/login");
           }
-        } else {
-          // User logged in → prevent visiting login/signup
-          if (pathname.startsWith("/login")) {
-            router.replace("/");
-          }
+          return;
+        }
+
+        // ✅ Backend verification only
+        const res = await axios.get("/api/checkAuth", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res?.data?.success) {
+          throw new Error("Invalid token");
+        }
+
+        // ✅ Prevent login page access when logged in
+        if (pathname.startsWith("/login")) {
+          router.replace("/");
+          return;
         }
       } catch (error) {
-        console.error("Error checking auth:", error);
+        console.error("Auth failed:", error);
+
+        // 🔥 Clear token
+        await Preferences.remove({ key: "access_token" });
+
         router.replace("/login");
       } finally {
-        setChecking(false);
+        if (isMounted) setChecking(false);
       }
     }
 
     checkAuth();
-  }, [router, pathname]);
 
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname, router]);
+
+  // ⏳ Loading UI
   if (checking) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white text-md font-bold gap-4">
+        <h2>Please wait......</h2>
         <div className="w-16 h-16 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
       </div>
     );

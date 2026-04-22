@@ -3,6 +3,7 @@ import { catchError } from "@/lib/healperFunc";
 import { connectDB } from "@/lib/connectDB";
 import cookie from "cookie";
 import Admin from "@/models/admins";
+import jwt from "jsonwebtoken";
 
 export async function POST(request) {
   try {
@@ -23,16 +24,18 @@ export async function POST(request) {
       );
     }
 
-    const { email, password } = validatedData.data;
+    const { email, password, matchType } = validatedData.data;
 
     // Find user
-    const checkUser = await Admin.findOne({ email }).select("+password");
+    const checkUser = await Admin.findOne({ matchType, email }).select(
+      "+password",
+    );
     if (!checkUser) {
       return new Response(
         JSON.stringify({
           success: false,
           statusCode: 401,
-          message: "Invalid email or password!",
+          message: "Invalid email or password!!",
         }),
         { status: 401 },
       );
@@ -51,7 +54,15 @@ export async function POST(request) {
     }
 
     // Use user ID as token
-    const token = checkUser._id.toString();
+    // Then in your code:
+    const token = jwt.sign(
+      {
+        userId: checkUser._id,
+        matchType: checkUser.matchType,
+      },
+      process.env.SECRET_KEY,
+      { expiresIn: "7d" },
+    );
 
     // Set cookie
     const headers = {

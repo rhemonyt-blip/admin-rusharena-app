@@ -3,31 +3,37 @@
 import { useState } from "react";
 import axios from "axios";
 import { showToast } from "@/app/component/application/tostify";
+import ConfirmModal from "./modals";
+import UserCard from "./user-cards";
 
+/* ================= MAIN PAGE ================= */
 export default function AdminUserControl() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [tokenFinding, setTokenFinding] = useState(null);
+  const [allusrModal, setAllusrModal] = useState(false);
 
-  // Ban states
   const [banUserId, setBanUserId] = useState(null);
   const [banLoading, setBanLoading] = useState(false);
 
-  // Unban states
   const [unbanUserId, setUnbanUserId] = useState(null);
   const [unbanLoading, setUnbanLoading] = useState(false);
 
-  // ================= FETCH USERS =================
+  /* ================= FETCH ================= */
   const fetchUsers = async () => {
+    setAllusrModal(false);
+
     if (!searchTerm.trim()) {
       showToast("error", "Enter username");
       return;
     }
+
     try {
       setLoading(true);
       const res = await axios.get(`/api/users?search=${searchTerm}`);
+
       if (res.data.success) {
         setUsers(res.data.data || []);
       } else {
@@ -41,7 +47,7 @@ export default function AdminUserControl() {
     }
   };
 
-  // ================= INPUT CHANGE =================
+  /* ================= HELPERS ================= */
   const handleInputChange = (userId, field, value) => {
     setUsers((prev) =>
       prev.map((user) =>
@@ -55,7 +61,7 @@ export default function AdminUserControl() {
     showToast("info", "Copied to clipboard");
   };
 
-  // ================= UPDATE BALANCE =================
+  /* ================= UPDATE ================= */
   const updateBalance = async (userId, winbalance, dipositbalance) => {
     try {
       setUpdatingId(userId);
@@ -65,11 +71,9 @@ export default function AdminUserControl() {
         dipositbalance,
       });
 
-      if (res.data.success) {
-        showToast("success", "Balance updated");
-      } else {
-        showToast("error", res.data.message);
-      }
+      res.data.success
+        ? showToast("success", "Balance updated")
+        : showToast("error", res.data.message);
     } catch {
       showToast("error", "Update failed");
     } finally {
@@ -77,11 +81,12 @@ export default function AdminUserControl() {
     }
   };
 
-  // ================= COPY TOKEN =================
+  /* ================= TOKEN ================= */
   const handleTokenCopy = async (userId) => {
     try {
       setTokenFinding(userId);
       const res = await axios.post("/api/get-admintoken", { userId });
+
       if (res.data.success) {
         navigator.clipboard.writeText(res.data.data.token);
         showToast("success", "Admin token copied");
@@ -93,7 +98,7 @@ export default function AdminUserControl() {
     }
   };
 
-  // ================= BAN =================
+  /* ================= BAN ================= */
   const confirmBan = async (email) => {
     try {
       setBanLoading(true);
@@ -103,11 +108,8 @@ export default function AdminUserControl() {
       });
 
       if (res.data.success) {
-        showToast("success", "User tokens banned successfully");
-        // Remove banned user from list
+        showToast("success", "User banned");
         setUsers((prev) => prev.filter((u) => u._id !== banUserId));
-      } else {
-        showToast("error", res.data.message);
       }
     } catch {
       showToast("error", "Failed to ban user");
@@ -117,7 +119,7 @@ export default function AdminUserControl() {
     }
   };
 
-  // ================= UNBAN =================
+  /* ================= UNBAN ================= */
   const confirmUnban = async (email) => {
     try {
       setUnbanLoading(true);
@@ -126,11 +128,9 @@ export default function AdminUserControl() {
         email,
       });
 
-      if (res.data.success) {
-        showToast("success", "User tokens unbanned successfully");
-      } else {
-        showToast("error", res.data.message);
-      }
+      res.data.success
+        ? showToast("success", "User unbanned")
+        : showToast("error", res.data.message);
     } catch {
       showToast("error", "Failed to unban user");
     } finally {
@@ -140,200 +140,100 @@ export default function AdminUserControl() {
   };
 
   return (
-    <div className="p-8 min-h-screen bg-[#0f0f0f] text-gray-200">
-      <h1 className="text-2xl font-semibold mb-8">Admin User Control</h1>
+    <div className="p-8 w-full min-h-screen bg-[#0f0f0f] text-gray-200">
+      {/* HEADER */}
+      <div className="flex justify-between mb-8">
+        <h1 className="text-2xl font-semibold">Admin User Control</h1>
 
-      {/* Search */}
-      <div className="flex justify-center mb-10 gap-3">
+        <button
+          onClick={() => {
+            setSearchTerm("allUser");
+            setAllusrModal(true);
+          }}
+          className="px-6 py-2 bg-green-700 rounded-lg font-medium"
+        >
+          All Users
+        </button>
+      </div>
+
+      {/* SEARCH */}
+      <div className="flex justify-center mb-4 gap-3">
         <input
           type="text"
           placeholder="Search username.."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
-          className="w-full md:w-[420px] bg-[#1a1a1a] border border-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          className="w-full md:w-[420px] bg-[#1a1a1a] border border-gray-700 rounded-lg px-4 py-2"
         />
         <button
           onClick={fetchUsers}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition"
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
         >
           Search
         </button>
       </div>
 
-      {loading && (
-        <p className="text-center text-gray-400">Searching users...</p>
-      )}
+      {loading && <p className="text-center">Searching users...</p>}
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* USERS */}
+      <div className="flex flex-col lg:grid lg:grid-cols-4 justify-centre gap-6">
         {users.map((user) => (
-          <div
+          <UserCard
             key={user._id}
-            className="bg-gradient-to-br from-[#1c1c1c] to-[#111] border border-gray-800 rounded-xl p-5 shadow-lg hover:border-blue-500 transition"
-          >
-            {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-white">{user.name}</h2>
-              <button
-                onClick={() => handleTokenCopy(user._id)}
-                className="text-xs bg-green-600 hover:bg-green-700 px-3 py-1 rounded"
-              >
-                {tokenFinding === user._id ? "Finding..." : "Copy Token"}
-              </button>
-            </div>
-
-            {/* User Info */}
-            {[
-              { label: "Email", value: user.email },
-              { label: "Phone", value: user.phone },
-              { label: "Password", value: user.password },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex justify-between items-center border-b border-gray-800 py-2"
-              >
-                <div>
-                  <p className="text-xs text-gray-400">{item.label}</p>
-                  <p className="text-sm break-all">{item.value || "N/A"}</p>
-                </div>
-                {item.value && (
-                  <button
-                    onClick={() => copyToClipboard(item.value)}
-                    className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded"
-                  >
-                    Copy
-                  </button>
-                )}
-              </div>
-            ))}
-
-            {/* Balance Inputs */}
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div>
-                <label className="text-xs text-gray-400">Win Balance</label>
-                <input
-                  type="number"
-                  value={user.winbalance ?? ""}
-                  onChange={(e) =>
-                    handleInputChange(user._id, "winbalance", e.target.value)
-                  }
-                  className="w-full mt-1 bg-[#1a1a1a] border border-gray-700 rounded p-2"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400">Deposit Balance</label>
-                <input
-                  type="number"
-                  value={user.dipositbalance ?? ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      user._id,
-                      "dipositbalance",
-                      e.target.value,
-                    )
-                  }
-                  className="w-full mt-1 bg-[#1a1a1a] border border-gray-700 rounded p-2"
-                />
-              </div>
-            </div>
-
-            {/* Save Button */}
-            <button
-              onClick={() =>
-                updateBalance(user._id, user.winbalance, user.dipositbalance)
-              }
-              disabled={updatingId === user._id}
-              className={`mt-5 w-full py-2 rounded font-medium ${
-                updatingId === user._id
-                  ? "bg-gray-600"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              {updatingId === user._id ? "Updating..." : "Save Changes"}
-            </button>
-
-            {/* Danger Zone */}
-            <div className="mt-5 border-t border-red-800 pt-3">
-              <p className="text-xs text-red-400 mb-2">Danger Zone</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setUnbanUserId(user._id)}
-                  className="flex-1 bg-green-600 py-2 rounded text-sm"
-                >
-                  Unban User
-                </button>
-                <button
-                  onClick={() => setBanUserId(user._id)}
-                  className="flex-1 bg-red-600 py-2 rounded text-sm"
-                >
-                  Ban User
-                </button>
-              </div>
-            </div>
-          </div>
+            user={user}
+            updatingId={updatingId}
+            tokenFinding={tokenFinding}
+            handleInputChange={handleInputChange}
+            updateBalance={updateBalance}
+            handleTokenCopy={handleTokenCopy}
+            copyToClipboard={copyToClipboard}
+            setBanUserId={setBanUserId}
+            setUnbanUserId={setUnbanUserId}
+          />
         ))}
       </div>
 
-      {/* BAN MODAL */}
+      {/* MODALS */}
       {banUserId && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl p-6 w-[350px]">
-            <h2 className="text-lg font-semibold mb-3 text-white">
-              Confirm Ban
-            </h2>
-            <p className="text-gray-400 text-sm mb-6">
-              Are you sure you want to ban this user?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setBanUserId(null)}
-                className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() =>
-                  confirmBan(users.find((u) => u._id === banUserId)?.email)
-                }
-                disabled={banLoading}
-                className="flex-1 py-2 bg-red-600 hover:bg-red-700 rounded"
-              >
-                {banLoading ? "Banning..." : "Confirm Ban"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          title="Confirm Ban"
+          message="Are you sure?"
+          onCancel={() => setBanUserId(null)}
+          onConfirm={() =>
+            confirmBan(users.find((u) => u._id === banUserId)?.email)
+          }
+          loading={banLoading}
+          confirmText="Confirm Ban"
+        />
       )}
 
-      {/* UNBAN MODAL */}
       {unbanUserId && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl p-6 w-[350px]">
-            <h2 className="text-lg font-semibold mb-3 text-white">
-              Confirm Unban
-            </h2>
-            <p className="text-gray-400 text-sm mb-6">
-              Are you sure you want to unban this user?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setUnbanUserId(null)}
-                className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() =>
-                  confirmUnban(users.find((u) => u._id === unbanUserId)?.email)
-                }
-                disabled={unbanLoading}
-                className="flex-1 py-2 bg-green-600 hover:bg-green-700 rounded"
-              >
-                {unbanLoading ? "Unbanning..." : "Confirm Unban"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          title="Confirm Unban"
+          message="Are you sure?"
+          onCancel={() => setUnbanUserId(null)}
+          onConfirm={() =>
+            confirmUnban(users.find((u) => u._id === unbanUserId)?.email)
+          }
+          loading={unbanLoading}
+          confirmText="Confirm Unban"
+          color="green"
+        />
+      )}
+
+      {allusrModal && (
+        <ConfirmModal
+          title="Fetch All Users"
+          message="This is a lot of data. Continue?"
+          onCancel={() => {
+            setAllusrModal(false);
+            setSearchTerm("");
+          }}
+          onConfirm={fetchUsers}
+          loading={loading}
+          confirmText="Fetch"
+        />
       )}
     </div>
   );
