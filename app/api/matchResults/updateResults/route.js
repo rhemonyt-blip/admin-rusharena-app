@@ -58,8 +58,9 @@ export async function POST(req) {
         const prevWinning = player.winning || 0;
         const diff = winning - prevWinning;
 
+        user.winbalance = Math.max((user.winbalance || 0) + diff, 0);
+
         // ✅ Update balance safely
-        user.winbalance = (user.winbalance || 0) + diff;
         await user.save({ session });
 
         updatedPlayers.push(user._id);
